@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Jojoinzoravar</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:ital,wght@0,300;0,400;1,300&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --canvas:   #F2EDE4;
+  --surface:  #E8E2D8;
+  --ink:      #1A1814;
+  --ink2:     #2E2B26;
+  --accent:   #E5341C;
+  --accent-l: #FF6B47;
+  --muted:    #8C7B6B;
+  --border:   #C4BAB0;
+  --white:    #FFFFFF;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--canvas);color:var(--ink);font-family:'Barlow',sans-serif;overflow-x:hidden;cursor:none}
+
+/* ── CURSOR ── */
+#cur{position:fixed;width:8px;height:8px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+#cur-ring{position:fixed;width:30px;height:30px;border:1.5px solid var(--ink);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .2s,height .2s,border-color .2s,transform .2s}
+body:has(a:hover) #cur-ring,body:has(button:hover) #cur-ring{width:44px;height:44px;border-color:var(--accent)}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;display:flex;align-items:center;justify-content:space-between;padding:1rem 2.5rem;background:var(--canvas);border-bottom:1px solid var(--ink);transition:background .3s}
+.n-logo{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.08em;color:var(--ink);text-decoration:none}
+.n-logo span{color:var(--accent)}
+.n-links{display:flex;gap:2rem;list-style:none}
+.n-links a{font-family:'IBM Plex Mono',monospace;font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .2s}
+.n-links a:hover{color:var(--accent)}
+.n-status{display:flex;align-items:center;gap:.5rem;font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.1em;color:var(--muted)}
+.n-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.5)}}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;padding:0 0 0 0;position:relative;overflow:hidden;border-bottom:1px solid var(--ink)}
+.hero-bg-tag{position:absolute;top:6rem;left:2.5rem;font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);opacity:0;animation:fu .6s .1s forwards}
+.hero-diag{position:absolute;bottom:0;right:0;width:45vw;height:65vh;background:var(--accent);clip-path:polygon(40% 0%, 100% 0%, 100% 100%, 0% 100%);z-index:0}
+.hero-diag-inner{position:absolute;bottom:0;right:0;width:38vw;height:50vh;background:var(--ink);clip-path:polygon(50% 0%, 100% 0%, 100% 100%, 0% 100%);z-index:1}
+.hero-name-wrap{position:relative;z-index:2;padding:0 2.5rem 2.5rem;overflow:hidden}
+.hero-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(5rem,13vw,13rem);line-height:.88;letter-spacing:.04em;color:var(--ink);opacity:0;animation:fu .9s .2s forwards}
+.hero-name .accent-letter{color:var(--accent)}
+.hero-name-outline{font-family:'Bebas Neue',sans-serif;font-size:clamp(5rem,13vw,13rem);line-height:.88;letter-spacing:.04em;color:transparent;-webkit-text-stroke:2px var(--canvas);opacity:0;animation:fu .9s .35s forwards}
+.hero-sub{font-family:'IBM Plex Mono',monospace;font-size:clamp(.7rem,1.2vw,.9rem);letter-spacing:.12em;color:var(--canvas);position:absolute;bottom:3.5rem;right:3rem;z-index:3;text-align:right;opacity:0;animation:fu .8s .6s forwards;line-height:1.8}
+.hero-stats{display:flex;border-top:1px solid var(--ink);position:relative;z-index:4;background:var(--canvas);opacity:0;animation:fu .7s .8s forwards}
+.hstat{flex:1;padding:1.2rem 2.5rem;border-right:1px solid var(--ink)}
+.hstat:last-child{border-right:none}
+.hstat-n{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;line-height:1;color:var(--ink)}
+.hstat-n span{color:var(--accent)}
+.hstat-l{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:.2rem}
+
+/* ── MARQUEE ── */
+.marquee-wrap{background:var(--ink);border-bottom:1px solid rgba(255,255,255,.1);overflow:hidden;padding:.75rem 0}
+.marquee-track{display:flex;width:max-content;animation:marquee 24s linear infinite}
+.marquee-track:hover{animation-play-state:paused}
+.marquee-item{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.12em;color:rgba(255,255,255,.7);white-space:nowrap;padding:0 1.5rem}
+.marquee-item.accent{color:var(--accent)}
+.marquee-sep{color:var(--accent);padding:0 .5rem;font-size:.9rem}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── SECTIONS ── */
+.section{padding:6rem 2.5rem;border-bottom:1px solid var(--ink)}
+.section.dark{background:var(--ink);color:var(--canvas)}
+.s-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+.section.dark .s-eyebrow{color:rgba(255,255,255,.35)}
+.s-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,6vw,5.5rem);line-height:.92;letter-spacing:.04em;color:var(--ink);margin-bottom:0}
+.section.dark .s-title{color:var(--canvas)}
+.s-title span{color:var(--accent)}
+.s-title .outline{color:transparent;-webkit-text-stroke:2px var(--ink)}
+.section.dark .s-title .outline{-webkit-text-stroke:2px var(--canvas)}
+
+/* ── ABOUT ── */
+.about-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:5rem;margin-top:4rem;align-items:start}
+.about-pull{font-family:'Barlow Condensed',sans-serif;font-size:clamp(1.6rem,3.5vw,2.8rem);font-weight:600;line-height:1.15;color:var(--ink);letter-spacing:.01em}
+.about-pull em{color:var(--accent);font-style:normal}
+.about-callout{margin-top:2rem;padding:1.5rem 1.75rem;background:var(--ink);color:var(--canvas)}
+.callout-label{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);margin-bottom:.6rem}
+.callout-stat{font-family:'Bebas Neue',sans-serif;font-size:3.5rem;line-height:1;color:var(--canvas);letter-spacing:.04em}
+.callout-sub{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:rgba(255,255,255,.45);margin-top:.3rem;letter-spacing:.08em}
+.about-prose p{font-size:.92rem;line-height:1.9;color:var(--ink2);margin-bottom:1.2rem;font-weight:300}
+.about-prose p strong{font-weight:500;color:var(--ink)}
+
+.roles-stack{margin-top:2.5rem;display:flex;flex-direction:column;gap:.5rem}
+.rg-head{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);padding:.8rem 0 .3rem;border-top:1px solid var(--border);margin-top:.4rem}
+.rg-head:first-child{border-top:none;padding-top:0}
+.rc{padding:.9rem 1.1rem;background:transparent;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;transition:border-color .2s,transform .2s;position:relative;overflow:hidden}
+.rc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);transform:scaleY(0);transition:transform .2s}
+.rc:hover{border-color:var(--ink);transform:translateX(5px)}
+.rc:hover::before{transform:scaleY(1)}
+.rc-n{font-family:'Barlow Condensed',sans-serif;font-size:.95rem;font-weight:600;color:var(--ink);letter-spacing:.03em}
+.rc-o{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.08em;color:var(--muted);margin-top:.15rem}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;padding:.18rem .6rem;white-space:nowrap}
+.b-on{background:var(--accent);color:var(--white)}
+.b-off{background:transparent;color:var(--muted);border:1px solid var(--border)}
+
+/* ── CUSTOM SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--ink)}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:0}
+::-webkit-scrollbar-thumb:hover{background:var(--accent-l)}
+::-webkit-scrollbar-corner{background:var(--ink)}
+*{scrollbar-width:thin;scrollbar-color:var(--accent) var(--ink)}
+
+/* ── EXPERIENCE TABS ── */
+.exp-tabs-wrap{position:relative;margin-top:3.5rem}
+.exp-tabs-wrap::after{content:'';position:absolute;right:0;top:0;bottom:0;width:60px;background:linear-gradient(to right,transparent,var(--ink));pointer-events:none;z-index:2}
+.exp-tabs-nav{display:flex;gap:.5rem;padding-bottom:1rem;overflow-x:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent}
+.exp-tabs-nav::-webkit-scrollbar{height:2px}
+.exp-tabs-nav::-webkit-scrollbar-track{background:rgba(255,255,255,.06);border-radius:1px}
+.exp-tabs-nav::-webkit-scrollbar-thumb{background:var(--accent);border-radius:1px}
+.exp-tab-btn{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;padding:.55rem 1.1rem;color:rgba(255,255,255,.4);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);cursor:none;white-space:nowrap;transition:color .2s,background .2s,border-color .2s;border-radius:0;flex-shrink:0}
+.exp-tab-btn:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.2)}
+.exp-tab-btn.active{color:var(--ink);background:var(--accent);border-color:var(--accent)}
+.exp-tab-content{display:none;padding-top:2.5rem;animation:tabIn .3s ease}
+.exp-tab-content.active{display:block}
+@keyframes tabIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.exp-entry{padding:1.8rem 0;border-bottom:1px solid rgba(255,255,255,.1);display:grid;grid-template-columns:180px 1fr;gap:2.5rem}
+.exp-entry:last-child{border-bottom:none}
+.exp-entry:first-child{border-top:1px solid rgba(255,255,255,.1)}
+.exp-date{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);padding-top:.2rem}
+.exp-badge{margin-top:.5rem;display:inline-block}
+.exp-main-title{font-family:'Barlow Condensed',sans-serif;font-size:1.35rem;font-weight:700;color:var(--canvas);letter-spacing:.02em;margin-bottom:.3rem}
+.exp-game{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:.5rem}
+.exp-desc{font-size:.84rem;line-height:1.82;color:rgba(255,255,255,.55);font-weight:300;max-width:620px}
+.exp-tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.8rem}
+.etag{font-family:'IBM Plex Mono',monospace;font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;padding:.17rem .6rem;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.4)}
+
+/* ── SKILLS ── */
+.skills-grid{margin-top:3.5rem;display:grid;grid-template-columns:repeat(6,1fr);grid-template-rows:auto auto;gap:1px;background:var(--ink)}
+.sk{background:var(--canvas);padding:2rem 1.75rem;transition:background .2s}
+.sk:hover{background:var(--surface)}
+.sk.featured{background:var(--accent);grid-column:span 2}
+.sk.featured:hover{background:#d42e16}
+.sk-ico{font-size:1.4rem;margin-bottom:1rem;display:block;line-height:1}
+.sk-title{font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:.8rem;letter-spacing:.03em}
+.sk.featured .sk-title{color:var(--white)}
+.sk-items{display:flex;flex-direction:column;gap:.35rem}
+.sk-item{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.06em;color:var(--muted);padding:.2rem 0;border-bottom:1px solid var(--border)}
+.sk-item:last-child{border-bottom:none}
+.sk.featured .sk-item{color:rgba(255,255,255,.7);border-bottom-color:rgba(255,255,255,.2)}
+
+/* ── CONTACT ── */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;margin-top:3.5rem;align-items:start}
+.contact-big{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,5vw,4.5rem);line-height:.9;letter-spacing:.04em;color:var(--ink);margin-bottom:2rem}
+.contact-big span{color:var(--accent)}
+.socials{display:flex;flex-direction:column;gap:.5rem}
+.soc{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.1rem;border:1px solid var(--border);text-decoration:none;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:.06em;transition:border-color .2s,background .2s,transform .2s}
+.soc:hover{border-color:var(--ink);background:var(--ink);color:var(--canvas);transform:translateX(4px)}
+.soc-arr{font-size:.7rem}
+.form{display:flex;flex-direction:column;gap:1rem}
+.fg{display:flex;flex-direction:column;gap:.4rem}
+.fl{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.fi,.ft{background:transparent;border:1px solid var(--border);padding:.8rem 1rem;color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:.78rem;outline:none;transition:border-color .2s;width:100%}
+.fi:focus,.ft:focus{border-color:var(--ink)}
+.ft{min-height:110px;resize:vertical}
+::placeholder{color:var(--border)}
+.btn-send{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:.85rem 2.5rem;background:var(--ink);color:var(--canvas);border:none;cursor:none;transition:background .2s,transform .2s;width:fit-content}
+.btn-send:hover{background:var(--accent);transform:translateY(-2px)}
+
+/* ── FOOTER ── */
+footer{background:var(--ink);padding:1.8rem 2.5rem;display:flex;justify-content:space-between;align-items:center}
+.f-l{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.08em;color:var(--canvas)}
+.f-l span{color:var(--accent)}
+.f-r{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.3)}
+
+/* ── ANIM ── */
+@keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.rev{opacity:0;transform:translateY(20px);transition:opacity .65s ease,transform .65s ease}
+.rev.on{opacity:1;transform:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:960px){
+  nav{padding:1rem 1.5rem}
+  .n-links{display:none}
+  .hero-sub{display:none}
+  .section{padding:4rem 1.5rem}
+  .about-grid,.contact-grid{grid-template-columns:1fr;gap:2.5rem}
+  .skills-grid{grid-template-columns:repeat(2,1fr)}
+  .sk.featured{grid-column:span 2}
+  .exp-entry{grid-template-columns:1fr;gap:.5rem}
+  .hstat{padding:1rem 1.5rem}
+  footer{padding:1.5rem;flex-direction:column;gap:.4rem;text-align:center}
+}
+@media(max-width:520px){
+  .skills-grid{grid-template-columns:1fr}
+  .sk.featured{grid-column:span 1}
+  .hero-stats{flex-wrap:wrap}
+  .hstat{min-width:50%;border-bottom:1px solid var(--border)}
+}
+</style>
+</head>
+<body>
+
+<div id="cur"></div>
+<div id="cur-ring"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="n-logo">Jojo<span>.</span></a>
+  <ul class="n-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <span class="n-status"><span class="n-dot"></span>Roblox · Since 2021</span>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-diag"></div>
+  <div class="hero-diag-inner"></div>
+  <p class="hero-bg-tag">// Jojoinzoravar · Portfolio · 2025</p>
+  <div class="hero-sub">
+    Chief of Staff · EPC<br/>
+    Stateview Prison<br/>
+    ~1 Million Members
+  </div>
+  <div class="hero-name-wrap">
+    <div class="hero-name">JOJOIN<span class="accent-letter">Z</span>ORAVAR</div>
+    <div class="hero-name-outline">ROBLOX</div>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat">
+      <div class="hstat-n">~1<span>M</span></div>
+      <div class="hstat-l">Stateview Members</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-n">6<span>+</span></div>
+      <div class="hstat-l">SV Departments</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-n">45<span>M+</span></div>
+      <div class="hstat-l">Visits QA'd</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-n">4<span>+</span></div>
+      <div class="hstat-l">Years on Platform</div>
+    </div>
+  </div>
+</div>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track" id="mq">
+    <span class="marquee-item accent">Chief of Staff</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Stateview Prison</span><span class="marquee-sep">·</span>
+    <span class="marquee-item accent">Events Program Coordinator</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Stateview Prison</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Admin &amp; Tester</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">ImagineXperience</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">QA</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">BeneVocon</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Tester &amp; Helper</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Double Dimension Studios</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Moderator</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Community Management</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Intelligence Agency</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Game Administration</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Support Agency</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Newsletter Team</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Board of Directors</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">ImagineXperience</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">SCA &amp; LCA</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Nourity.co</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Multi-Studio Moderator</span><span class="marquee-sep">·</span>
+    <!-- duplicate for seamless loop -->
+    <span class="marquee-item accent">Chief of Staff</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Stateview Prison</span><span class="marquee-sep">·</span>
+    <span class="marquee-item accent">Events Program Coordinator</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Stateview Prison</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Admin &amp; Tester</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">ImagineXperience</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">QA</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">BeneVocon</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Tester &amp; Helper</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Double Dimension Studios</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Moderator</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Community Management</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Intelligence Agency</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Game Administration</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Support Agency</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Newsletter Team</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Board of Directors</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">ImagineXperience</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">SCA &amp; LCA</span><span class="marquee-sep">·</span>
+    <span class="marquee-item">Nourity.co</span><span class="marquee-sep">·</span>
+    <span class="marquee-item" style="color:rgba(255,255,255,.3);font-size:.85rem">Formerly:</span>
+    <span class="marquee-item accent">Multi-Studio Moderator</span><span class="marquee-sep">·</span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section class="section" id="about">
+  <p class="s-eyebrow rev">01 — About</p>
+  <h2 class="s-title rev">Who I<br/><span class="outline">Am.</span></h2>
+  <div class="about-grid">
+    <div>
+      <p class="about-pull rev">
+        Built from the<br/>
+        <em>ground up.</em><br/>
+        One rank at a time.
+      </p>
+      <div class="about-callout rev">
+        <div class="callout-label">Stateview Prison</div>
+        <div class="callout-stat">~1M</div>
+        <div class="callout-sub">#1 Prison Roleplay Group · Roblox</div>
+      </div>
+    </div>
+    <div>
+      <div class="about-prose rev">
+        <p>
+          I'm <strong>Jojoinzoravar</strong> — been on Roblox since 2021 and spent that time actually building something. I've worked through staff teams, admin structures, QA pipelines, and department roles across some of the platform's biggest communities.
+        </p>
+        <p>
+          Most of my work lives at <strong>Stateview Prison</strong> — the #1 prison roleplay group on Roblox with close to a million members. I currently hold <strong>Chief of Staff (CoS)</strong> and <strong>Events Program Coordinator (EPC)</strong> there. I came up through the ranks — started as a Moderator, worked through Community Management, the Intelligence Agency, Events Team, Game Administration, Support Agency, and the Newsletter Team on the way up.
+        </p>
+        <p>
+          At <strong>ImagineXperience</strong> I'm an Admin and active Tester — and I was previously on their <strong>Board of Directors</strong>. At <strong>BeneVocon</strong> I do QA work. Separately, I held <strong>SCA and LCA roles at Nourity.co</strong> — a completely different org. I also test and help out players at <strong>Double Dimension Studios</strong>, and I play Cream.
+        </p>
+      </div>
+      <div class="roles-stack rev">
+        <div class="rg-head">Current</div>
+        <div class="rc"><div><div class="rc-n">Chief of Staff (CoS)</div><div class="rc-o">Stateview Prison · Admin Rank</div></div><span class="badge b-on">Active</span></div>
+        <div class="rc"><div><div class="rc-n">Events Program Coordinator (EPC)</div><div class="rc-o">Stateview Prison · SVET Rank</div></div><span class="badge b-on">Active</span></div>
+        <div class="rc"><div><div class="rc-n">Admin &amp; Tester</div><div class="rc-o">ImagineXperience</div></div><span class="badge b-on">Active</span></div>
+        <div class="rc"><div><div class="rc-n">QA</div><div class="rc-o">BeneVocon</div></div><span class="badge b-on">Active</span></div>
+        <div class="rc"><div><div class="rc-n">Tester &amp; Helper</div><div class="rc-o">Double Dimension Studios</div></div><span class="badge b-on">Active</span></div>
+        <div class="rg-head">Former — Stateview Prison</div>
+        <div class="rc"><div><div class="rc-n">Moderator</div><div class="rc-o">Stateview Prison</div></div><span class="badge b-off">Former</span></div>
+        <div class="rc"><div><div class="rc-n">Community Management (CM)</div><div class="rc-o">Stateview Prison</div></div><span class="badge b-off">Former</span></div>
+        <div class="rc"><div><div class="rc-n">Intelligence Agency (IA)</div><div class="rc-o">Stateview Prison</div></div><span class="badge b-off">Former</span></div>
+        <div class="rc"><div><div class="rc-n">Game Administration (GA)</div><div class="rc-o">Stateview Prison</div></div><span class="badge b-off">Former</span></div>
+        <div class="rc"><div><div class="rc-n">Support Agency (SA)</div><div class="rc-o">Stateview Prison</div></div><span class="badge b-off">Former</span></div>
+        <div class="rc"><div><div class="rc-n">Newsletter Team</div><div class="rc-o">Stateview Prison</div></div><span class="badge b-off">Former</span></div>
+        <div class="rg-head">Former — Other</div>
+        <div class="rc"><div><div class="rc-n">Board of Directors</div><div class="rc-o">ImagineXperience</div></div><span class="badge b-off">Former</span></div>
+        <div class="rc"><div><div class="rc-n">SCA &amp; LCA</div><div class="rc-o">Nourity.co</div></div><span class="badge b-off">Former</span></div>
+        <div class="rc"><div><div class="rc-n">Moderator</div><div class="rc-o">Multiple Studios</div></div><span class="badge b-off">Former</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section class="section dark" id="experience">
+  <p class="s-eyebrow rev">02 — Experience</p>
+  <h2 class="s-title rev">Where I've <span>Worked.</span></h2>
+
+  <div class="exp-tabs-wrap rev">
+    <div class="exp-tabs-nav">
+      <button class="exp-tab-btn active" onclick="switchTab('sv')">Stateview Prison</button>
+      <button class="exp-tab-btn" onclick="switchTab('ix')">ImagineXperience</button>
+      <button class="exp-tab-btn" onclick="switchTab('bv')">BeneVocon</button>
+      <button class="exp-tab-btn" onclick="switchTab('no')">Nourity.co</button>
+      <button class="exp-tab-btn" onclick="switchTab('dd')">Double Dimension</button>
+      <button class="exp-tab-btn" onclick="switchTab('qa')">QA Studios</button>
+    </div>
+  </div>
+
+  <!-- STATEVIEW -->
+  <div class="exp-tab-content active" id="tab-sv">
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Present</div>
+        <span class="badge b-on exp-badge">Active</span>
+      </div>
+      <div>
+        <div class="exp-game">Stateview Prison · #1 Prison RP · ~1M Members</div>
+        <div class="exp-main-title">Chief of Staff (CoS)</div>
+        <p class="exp-desc">Top-tier admin rank across the whole Stateview org. Involved in organizational decisions, staff oversight, and cross-department operations. One of the highest positions in the community hierarchy — earned through years of consistent performance across every level of the org.</p>
+        <div class="exp-tags"><span class="etag">Admin Rank</span><span class="etag">Org-Wide</span><span class="etag">Leadership</span></div>
+      </div>
+    </div>
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Present</div>
+        <span class="badge b-on exp-badge">Active</span>
+      </div>
+      <div>
+        <div class="exp-game">Stateview Prison · Stateview Events Team (SVET)</div>
+        <div class="exp-main-title">Events Program Coordinator (EPC)</div>
+        <p class="exp-desc">EPC is my rank within SVET — Stateview's Events Team, which I'm currently an active member of. Responsible for planning, logistics, and execution of events at scale inside one of Roblox's biggest communities.</p>
+        <div class="exp-tags"><span class="etag">SVET</span><span class="etag">EPC Rank</span><span class="etag">Planning</span><span class="etag">Coordination</span></div>
+      </div>
+    </div>
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Former</div>
+        <span class="badge b-off exp-badge">Former</span>
+      </div>
+      <div>
+        <div class="exp-game">Stateview Prison · Moderation</div>
+        <div class="exp-main-title">Moderator</div>
+        <p class="exp-desc">Enforcing rules and keeping the community in order at the game level. Where it all started at Stateview — the foundation everything else was built on.</p>
+        <div class="exp-tags"><span class="etag">Moderation</span><span class="etag">Rule Enforcement</span></div>
+      </div>
+    </div>
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Former</div>
+        <span class="badge b-off exp-badge">Former</span>
+      </div>
+      <div>
+        <div class="exp-game">Stateview Prison · Community Management Dept</div>
+        <div class="exp-main-title">Community Management (CM)</div>
+        <p class="exp-desc">Maintaining healthy player relations and community health across Stateview. Separate department from moderation — focused on the wider community experience rather than in-game enforcement.</p>
+        <div class="exp-tags"><span class="etag">Community Relations</span><span class="etag">Player Health</span></div>
+      </div>
+    </div>
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Former</div>
+        <span class="badge b-off exp-badge">Former</span>
+      </div>
+      <div>
+        <div class="exp-game">Stateview Prison · Intelligence Agency</div>
+        <div class="exp-main-title">Intelligence Agency (IA)</div>
+        <p class="exp-desc">Internal investigations and trust work within Stateview. A completely separate department with its own scope, operating independently from community-facing roles.</p>
+        <div class="exp-tags"><span class="etag">Investigations</span><span class="etag">Internal Trust</span></div>
+      </div>
+    </div>
+
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Former</div>
+        <span class="badge b-off exp-badge">Former</span>
+      </div>
+      <div>
+        <div class="exp-game">Stateview Prison · Game Administration</div>
+        <div class="exp-main-title">Game Administration (GA)</div>
+        <p class="exp-desc">Higher-level enforcement and game admin work within Stateview. Different from moderation — GA operates at a broader scope with more authority over game management decisions.</p>
+        <div class="exp-tags"><span class="etag">Game Admin</span><span class="etag">Enforcement</span></div>
+      </div>
+    </div>
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Former</div>
+        <span class="badge b-off exp-badge">Former</span>
+      </div>
+      <div>
+        <div class="exp-game">Stateview Prison · Support Agency</div>
+        <div class="exp-main-title">Support Agency (SA)</div>
+        <p class="exp-desc">Handling player tickets and issue resolution. A dedicated support department — entirely separate from moderation and GA, focused purely on helping players with problems and questions.</p>
+        <div class="exp-tags"><span class="etag">Player Support</span><span class="etag">Ticket Resolution</span></div>
+      </div>
+    </div>
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Former</div>
+        <span class="badge b-off exp-badge">Former</span>
+      </div>
+      <div>
+        <div class="exp-game">Stateview Prison · Newsletter Team</div>
+        <div class="exp-main-title">Newsletter Team</div>
+        <p class="exp-desc">Contributing to Stateview's official written communications — writing and editing content for the community newsletter. A creative and communications-focused department, completely separate from all the operational roles.</p>
+        <div class="exp-tags"><span class="etag">Writing</span><span class="etag">Communications</span><span class="etag">Newsletter</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMAGINEXPERIENCE -->
+  <div class="exp-tab-content" id="tab-ix">
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Present</div>
+        <span class="badge b-on exp-badge">Active</span>
+      </div>
+      <div>
+        <div class="exp-game">ImagineXperience · Roblox Studio</div>
+        <div class="exp-main-title">Admin &amp; Tester</div>
+        <p class="exp-desc">Currently Admin and active Tester at ImagineXperience. QA work spans Chance, Sword Saga, Eternal Elimination [Alpha], Realistic Guns, and Blade Battles. Found major exploits including one in Sword Saga that gave players access to areas they were never meant to reach.</p>
+        <div class="exp-tags"><span class="etag">Admin</span><span class="etag">QA Testing</span><span class="etag">Exploit Detection</span><span class="etag">Bug Reporting</span></div>
+      </div>
+    </div>
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Former</div>
+        <span class="badge b-off exp-badge">Former</span>
+      </div>
+      <div>
+        <div class="exp-game">ImagineXperience · Leadership</div>
+        <div class="exp-main-title">Board of Directors</div>
+        <p class="exp-desc">Previously sat on the Board of Directors at ImagineXperience — involved at the highest decision-making level of the organization before transitioning to the current Admin &amp; Tester role.</p>
+        <div class="exp-tags"><span class="etag">Board of Directors</span><span class="etag">Org Leadership</span></div>
+      </div>
+    </div>
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Jun 2023 – Jan 2024</div>
+        <span class="badge b-off exp-badge">Former</span>
+      </div>
+      <div>
+        <div class="exp-game">Eternal Elimination [ALPHA]</div>
+        <div class="exp-main-title">QA Tester — Alpha Cycle</div>
+        <p class="exp-desc">Full alpha testing — bug reports, gameplay feedback, and compatibility testing across multiple PC configurations. Worked directly with devs, designers, and PMs throughout the cycle.</p>
+        <div class="exp-tags"><span class="etag">Alpha QA</span><span class="etag">Cross-Platform</span><span class="etag">Gameplay Feedback</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BENEVOCON -->
+  <div class="exp-tab-content" id="tab-bv">
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Present</div>
+        <span class="badge b-on exp-badge">Active</span>
+      </div>
+      <div>
+        <div class="exp-game">BeneVocon · Roblox</div>
+        <div class="exp-main-title">QA</div>
+        <p class="exp-desc">QA work at BeneVocon — testing and quality assurance within the organization. Note: BeneVocon is a separate org from Nourity.co entirely.</p>
+        <div class="exp-tags"><span class="etag">QA</span><span class="etag">Testing</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOURITY -->
+  <div class="exp-tab-content" id="tab-no">
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Former</div>
+        <span class="badge b-off exp-badge">Former</span>
+      </div>
+      <div>
+        <div class="exp-game">Nourity.co · Roblox · Separate org from BeneVocon</div>
+        <div class="exp-main-title">SCA &amp; LCA</div>
+        <p class="exp-desc">Held SCA and LCA roles at Nourity.co — a completely separate organization from BeneVocon. Work involved structured community operations, compliance, and organizational support within the platform.</p>
+        <div class="exp-tags"><span class="etag">SCA</span><span class="etag">LCA</span><span class="etag">Community Ops</span><span class="etag">Compliance</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOUBLE DIMENSION -->
+  <div class="exp-tab-content" id="tab-dd">
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Present</div>
+        <span class="badge b-on exp-badge">Active</span>
+      </div>
+      <div>
+        <div class="exp-game">Double Dimension Studios · Roblox</div>
+        <div class="exp-main-title">Game Tester &amp; Community Helper</div>
+        <p class="exp-desc">Active QA tester and community helper. The helper role means being the point of contact for players with questions — bridging the gap between the community and the dev team while also contributing to the testing pipeline.</p>
+        <div class="exp-tags"><span class="etag">QA Testing</span><span class="etag">Player Support</span><span class="etag">Community Help</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QA STUDIOS -->
+  <div class="exp-tab-content" id="tab-qa">
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Mar 2025 – Present</div>
+        <span class="badge b-on exp-badge">Active</span>
+      </div>
+      <div>
+        <div class="exp-game">Funwise Studios · 1M+ Members · Night Shift</div>
+        <div class="exp-main-title">QA Tester</div>
+        <p class="exp-desc">Tested Night Shift for Funwise Studios (1M+ group members). The game hit 148,400+ visits in its first five days post-launch after a full QA cycle.</p>
+        <div class="exp-tags"><span class="etag">Pre-Release QA</span><span class="etag">148K Visits / 5 Days</span></div>
+      </div>
+    </div>
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Mar 2025 – Present</div>
+        <span class="badge b-on exp-badge">Active</span>
+      </div>
+      <div>
+        <div class="exp-game">Play! Studios · 4M Members · Rotuber Life 2</div>
+        <div class="exp-main-title">QA Tester</div>
+        <p class="exp-desc">Tested Rotuber Life 2 for Play! Studios — one of the biggest studios on Roblox with 4 million group members. Game shipped successfully after the QA process.</p>
+        <div class="exp-tags"><span class="etag">Pre-Release QA</span><span class="etag">4M Member Studio</span></div>
+      </div>
+    </div>
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Mar – Jun 2024</div>
+        <span class="badge b-off exp-badge">Former</span>
+      </div>
+      <div>
+        <div class="exp-game">Bloxer's · Nighthawk Cafe's</div>
+        <div class="exp-main-title">Game Tester</div>
+        <p class="exp-desc">Tested the Nighthawk Cafe's franchise for Bloxer's gaming platform. Feedback directly improved game performance and player satisfaction under tight deadlines.</p>
+        <div class="exp-tags"><span class="etag">Franchise QA</span><span class="etag">Performance</span></div>
+      </div>
+    </div>
+    <div class="exp-entry">
+      <div>
+        <div class="exp-date">Jan 2021 – Apr 2023</div>
+        <span class="badge b-off exp-badge">Former</span>
+      </div>
+      <div>
+        <div class="exp-game">Race · Where It Started</div>
+        <div class="exp-main-title">Lead Tester — First Role</div>
+        <p class="exp-desc">My first QA role and where everything began. Lead tester on Race — found critical bugs that shaped the dev team's priorities. The project was eventually cancelled after an unfixable bug, but this is the foundation of everything that followed.</p>
+        <div class="exp-tags"><span class="etag">Lead Testing</span><span class="etag">First Role · 2021</span></div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+<!-- SKILLS -->
+<section class="section" id="skills" style="padding-left:0;padding-right:0;padding-bottom:0">
+  <div style="padding:0 2.5rem 2rem">
+    <p class="s-eyebrow rev">03 — Skills</p>
+    <h2 class="s-title rev">What I'm <span>Good At.</span></h2>
+  </div>
+  <div class="skills-grid rev">
+    <div class="sk featured">
+      <span class="sk-ico">🏛️</span>
+      <div class="sk-title">Admin &amp; Leadership</div>
+      <div class="sk-items">
+        <div class="sk-item">Chief of Staff</div>
+        <div class="sk-item">Org-wide decisions</div>
+        <div class="sk-item">Staff oversight</div>
+        <div class="sk-item">Board-level work</div>
+        <div class="sk-item">Cross-dept operations</div>
+      </div>
+    </div>
+    <div class="sk">
+      <span class="sk-ico">🎪</span>
+      <div class="sk-title">Events</div>
+      <div class="sk-items">
+        <div class="sk-item">Event planning (EPC)</div>
+        <div class="sk-item">Logistics</div>
+        <div class="sk-item">Execution</div>
+        <div class="sk-item">Large-scale events</div>
+      </div>
+    </div>
+    <div class="sk">
+      <span class="sk-ico">🔍</span>
+      <div class="sk-title">QA Testing</div>
+      <div class="sk-items">
+        <div class="sk-item">Bug detection</div>
+        <div class="sk-item">Exploit finding</div>
+        <div class="sk-item">Documentation</div>
+        <div class="sk-item">Pre-release cycles</div>
+      </div>
+    </div>
+    <div class="sk">
+      <span class="sk-ico">👥</span>
+      <div class="sk-title">Community</div>
+      <div class="sk-items">
+        <div class="sk-item">Community relations</div>
+        <div class="sk-item">Moderation</div>
+        <div class="sk-item">Player support</div>
+        <div class="sk-item">Newsletter writing</div>
+      </div>
+    </div>
+    <div class="sk featured" style="background:var(--ink);grid-column:span 2">
+      <span class="sk-ico" style="font-size:1.4rem">🔐</span>
+      <div class="sk-title" style="color:var(--canvas)">Intelligence &amp; Trust &amp; Safety</div>
+      <div class="sk-items">
+        <div class="sk-item" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15)">IA investigations</div>
+        <div class="sk-item" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15)">Conflict resolution</div>
+        <div class="sk-item" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15)">Policy enforcement</div>
+        <div class="sk-item" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.15)">Compliance (SCA/LCA)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="section" id="contact" style="border-bottom:none">
+  <p class="s-eyebrow rev">04 — Contact</p>
+  <div class="rev" style="margin-top:3.5rem;max-width:560px">
+    <div class="contact-big">Get<br/>In <span>Touch.</span></div>
+    <div class="socials">
+      <a href="https://www.roblox.com/users/1591443025/profile" class="soc"><span>🎮 Roblox — Jojoinzoravar</span><span class="soc-arr">↗</span></a>
+      <a href="https://discord.com/users/jojoinzoravar" class="soc"><span>💬 Discord — jojoinzoravar</span><span class="soc-arr">↗</span></a>
+      <a href="mailto:Jojoinzoravar@gmail.com" class="soc"><span>📧 Jojoinzoravar@gmail.com</span><span class="soc-arr">↗</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-l">JOJOINZORAVAR<span>.</span></div>
+  <div class="f-r">Built on Roblox · 2025</div>
+</footer>
+
+<script>
+  // Cursor
+  const c=document.getElementById('cur'),r=document.getElementById('cur-ring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;c.style.left=mx+'px';c.style.top=my+'px';});
+  (function tick(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;r.style.left=rx+'px';r.style.top=ry+'px';requestAnimationFrame(tick);})();
+
+  // Scroll reveal
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach((e,i)=>{if(e.isIntersecting){setTimeout(()=>e.target.classList.add('on'),i*60);io.unobserve(e.target);}});
+  },{threshold:.1});
+  document.querySelectorAll('.rev').forEach(el=>io.observe(el));
+
+  // Tabs
+  function switchTab(id){
+    document.querySelectorAll('.exp-tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.exp-tab-content').forEach(t=>t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('tab-'+id).classList.add('active');
+  }
+
+  // Nav scroll effect
+  window.addEventListener('scroll',()=>{
+    document.querySelector('nav').style.borderBottomColor=window.scrollY>60?'var(--border)':'var(--ink)';
+  });
+</script>
+</body>
+</html>
